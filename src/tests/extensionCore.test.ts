@@ -7,22 +7,22 @@ import {
   parseRulePattern,
   runRegexPipeline,
   splitIntoSentences,
-} from '../../public/extension/src/regexEngine.js';
+} from '../../lib/regexEngine.js';
 import {
   buildCacheKey,
   resolveChatEndpoint,
   resolveTtsEndpoints,
-} from '../../public/extension/src/ttsClient.js';
-import { createDefaultSettings } from '../../public/extension/src/constants.js';
+} from '../../lib/ttsClient.js';
+import { createDefaultSettings } from '../../lib/constants.js';
 import {
   getEffectiveLlmAuth,
   resetAll,
   resetKeepCredentials,
-} from '../../public/extension/src/storage.js';
+} from '../../lib/storage.js';
 import {
   extractRulesFromLlmReply,
   inspectSandboxResult,
-} from '../../public/extension/src/regexAgent.js';
+} from '../../lib/regexAgent.js';
 import { buildZipArchive } from '../utils/zipBuilder';
 
 test('regexEngine: parses /pattern/flags and forces g flag', () => {

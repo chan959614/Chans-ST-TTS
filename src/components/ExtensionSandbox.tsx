@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Monitor, Moon, Plus, Smartphone, Sun, Trash2 } from 'lucide-react';
+import '../../style.css';
 import { INITIAL_SANDBOX_CHAT, type SandboxChatMessage } from '../data/sandboxMessages';
 import {
   installSandboxFetchInterceptor,
@@ -16,18 +17,6 @@ interface ExtensionSandboxProps {
 declare global {
   interface Window {
     __ST_DIRECT_TTS_MANUAL_BOOT__?: boolean;
-    __ST_DIRECT_TTS_INIT__?: (opts: {
-      settingsHost: HTMLElement | null;
-      chatRootSelector: string;
-    }) => {
-      destroy: () => void;
-      gestureHandler: { scanIframes: () => void };
-      settings: {
-        tts: { baseUrl: string; apiKey: string };
-        llm: { baseUrl: string; apiKey: string };
-      };
-      settingsUI: { render: () => void };
-    };
     __ST_DIRECT_TTS_INSTANCE__?: {
       destroy: () => void;
       gestureHandler: { scanIframes: () => void };
@@ -72,27 +61,17 @@ export function ExtensionSandbox({ isDark, onToggleTheme }: ExtensionSandboxProp
   const messagesRef = useRef<SandboxChatMessage[]>(messages);
   messagesRef.current = messages;
 
-  // Mount real /extension/style.css + /extension/index.js inside simulated SillyTavern context
+  // Mount real root /index.js + /style.css inside simulated SillyTavern context
   useEffect(() => {
     let cancelled = false;
     window.__ST_DIRECT_TTS_MANUAL_BOOT__ = true;
 
-    // 1. Load real extension stylesheet once
-    let linkEl = document.getElementById('st-dtts-live-css') as HTMLLinkElement | null;
-    if (!linkEl) {
-      linkEl = document.createElement('link');
-      linkEl.id = 'st-dtts-live-css';
-      linkEl.rel = 'stylesheet';
-      linkEl.href = '/extension/style.css';
-      document.head.appendChild(linkEl);
-    }
-
-    // 2. Install local mock fetch interceptor (only intercepts mock-edge-tts.local & mock-llm.local)
+    // 1. Install local mock fetch interceptor (only intercepts mock-edge-tts.local & mock-llm.local)
     const uninstallFetch = installSandboxFetchInterceptor((entry) => {
       setNetworkLogs((prev) => [entry, ...prev].slice(0, 12));
     });
 
-    // 3. Create authentic SillyTavern.getContext() runtime shim
+    // 2. Create authentic SillyTavern.getContext() runtime shim
     let storedSettings: Record<string, unknown> = {};
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -140,44 +119,28 @@ export function ExtensionSandbox({ isDark, onToggleTheme }: ExtensionSandboxProp
       }),
     };
 
-    // 4. Load the REAL pure ES module /extension/index.js via native <script type="module">
-    const bootInstance = () => {
-      if (cancelled || !settingsHostRef.current || !window.__ST_DIRECT_TTS_INIT__) return;
-      const instance = window.__ST_DIRECT_TTS_INIT__({
-        settingsHost: settingsHostRef.current,
-        chatRootSelector: '#chat',
+    // 3. Import the REAL root ES module /index.js directly
+    import('../../index.js')
+      .then((mod) => {
+        if (cancelled || !settingsHostRef.current) return;
+        const instance = mod.initDirectTts({
+          settingsHost: settingsHostRef.current,
+          chatRootSelector: '#chat',
+        });
+
+        // Pre-fill sandbox mock URLs ONLY on first load when URLs are empty so users can test immediately
+        if (!instance.settings.tts.baseUrl) {
+          instance.settings.tts.baseUrl = MOCK_TTS_BASE_URL;
+          instance.settings.llm.baseUrl = MOCK_LLM_BASE_URL;
+          instance.settingsUI.render();
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setBootError(`載入根目錄 /index.js 失敗：${err?.message || String(err)}`);
       });
-
-      // Pre-fill sandbox mock URLs ONLY on first load when URLs are empty so users can test immediately
-      if (!instance.settings.tts.baseUrl) {
-        instance.settings.tts.baseUrl = MOCK_TTS_BASE_URL;
-        instance.settings.llm.baseUrl = MOCK_LLM_BASE_URL;
-        instance.settingsUI.render();
-      }
-    };
-
-    const onLoaded = () => bootInstance();
-    window.addEventListener('st-direct-tts-module-loaded', onLoaded);
-
-    if (window.__ST_DIRECT_TTS_INIT__) {
-      bootInstance();
-    } else {
-      let scriptEl = document.getElementById('st-dtts-live-js') as HTMLScriptElement | null;
-      if (!scriptEl) {
-        scriptEl = document.createElement('script');
-        scriptEl.id = 'st-dtts-live-js';
-        scriptEl.type = 'module';
-        scriptEl.src = '/extension/index.js';
-        scriptEl.onerror = () => {
-          if (!cancelled) setBootError('載入 /extension/index.js 失敗，請重新整理頁面。');
-        };
-        document.head.appendChild(scriptEl);
-      }
-    }
 
     return () => {
       cancelled = true;
-      window.removeEventListener('st-direct-tts-module-loaded', onLoaded);
       window.clearTimeout(saveTimer);
       uninstallFetch();
       window.__ST_DIRECT_TTS_INSTANCE__?.destroy();
@@ -218,7 +181,7 @@ export function ExtensionSandbox({ isDark, onToggleTheme }: ExtensionSandboxProp
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span className="font-medium text-slate-900 dark:text-slate-100">即時沙盒</span>
           <span aria-hidden="true">·</span>
-          <span>直接運行 /extension/index.js 原生模組</span>
+          <span>直接運行根目錄 /index.js 與 /manifest.json 原生模組</span>
           <span aria-hidden="true">·</span>
           <span>雙擊左側任一樓層文字、留白處或內嵌 iframe 彈出朗讀選單</span>
           {saveTick && (

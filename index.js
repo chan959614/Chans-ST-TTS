@@ -4,19 +4,20 @@
  * Zero bundler, zero Node.js dependencies, zero fragile relative core imports.
  */
 
-import { DirectAudioPlayer } from './src/audioPlayer.js';
-import { MODULE_NAME } from './src/constants.js';
-import { MessageGestureHandler } from './src/gestureHandler.js';
-import { fetchLatestAiMessage, resolveMessageText } from './src/messageSource.js';
-import { runRegexAgentTurn } from './src/regexAgent.js';
-import { runRegexPipeline, splitIntoSentences } from './src/regexEngine.js';
-import { getEffectiveLlmAuth, getSettings, getSTContext } from './src/storage.js';
-import { AudioCache } from './src/ttsClient.js';
-import { FloatingContextMenu, MiniPlayerBar, SettingsPanelUI } from './src/ui.js';
+import { DirectAudioPlayer } from './lib/audioPlayer.js';
+import { MODULE_NAME } from './lib/constants.js';
+import { MessageGestureHandler } from './lib/gestureHandler.js';
+import { fetchLatestAiMessage, resolveMessageText } from './lib/messageSource.js';
+import { runRegexAgentTurn } from './lib/regexAgent.js';
+import { runRegexPipeline, splitIntoSentences } from './lib/regexEngine.js';
+import { getEffectiveLlmAuth, getSettings, getSTContext } from './lib/storage.js';
+import { AudioCache } from './lib/ttsClient.js';
+import { FloatingContextMenu, MiniPlayerBar, SettingsPanelUI } from './lib/ui.js';
 
 /**
  * Initialize and mount the ST Direct TTS extension.
  * Safe to call once in SillyTavern/TauriTavern or explicitly in a local sandbox host.
+ * @param {{ settingsHost?: HTMLElement | null, chatRootSelector?: string, onSnapshot?: ((snap: any) => void) | null }} [options]
  */
 export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat', onSnapshot = null } = {}) {
   if (typeof window !== 'undefined' && window.__ST_DIRECT_TTS_INSTANCE__) {

@@ -60,11 +60,11 @@ export function SourceExplorer() {
             純原生 ES Module 插件原始碼
           </h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-            免打包、免建置、無外部依賴；下載 ZIP 解壓至{' '}
-            <code className="font-mono text-xs text-slate-800 dark:text-slate-200">
-              public/scripts/extensions/third-party/st-direct-tts/
-            </code>{' '}
-            即可使用。
+            <code className="font-mono text-xs text-slate-800 dark:text-slate-200">manifest.json</code>、
+            <code className="font-mono text-xs text-slate-800 dark:text-slate-200">index.js</code>、
+            <code className="font-mono text-xs text-slate-800 dark:text-slate-200">style.css</code> 與{' '}
+            <code className="font-mono text-xs text-slate-800 dark:text-slate-200">lib/</code>{' '}
+            皆位於倉庫根目錄，推送至 GitHub 即可直接在 TauriTavern／SillyTavern 貼上 Git 網址安裝，或下載 ZIP 解壓使用。
           </p>
         </div>
 

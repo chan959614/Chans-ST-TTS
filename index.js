@@ -10,9 +10,9 @@ import { MessageGestureHandler } from './lib/gestureHandler.js';
 import { fetchLatestAiMessage, resolveMessageText } from './lib/messageSource.js';
 import { runRegexAgentTurn } from './lib/regexAgent.js';
 import { runRegexPipeline, splitIntoSentences } from './lib/regexEngine.js';
-import { getEffectiveLlmAuth, getSettings, getSTContext } from './lib/storage.js';
+import { getEffectiveLlmAuth, getSettings, getSTContext, saveSettings } from './lib/storage.js';
 import { AudioCache } from './lib/ttsClient.js';
-import { FloatingContextMenu, MiniPlayerBar, SettingsPanelUI } from './lib/ui.js';
+import { FloatingContextMenu, FloatingOrbPlayer, SettingsPanelUI } from './lib/ui.js';
 
 /**
  * Initialize and mount the ST Direct TTS extension.
@@ -27,21 +27,34 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
   const settings = getSettings();
   const cache = new AudioCache(120);
 
-  let miniPlayer = null;
+  let floatingOrb = null;
   let settingsUI = null;
 
   const player = new DirectAudioPlayer({
     cache,
     onStateChange: (state) => {
-      miniPlayer?.render(state, settings.ui.showMiniPlayer !== false);
+      floatingOrb?.render(state, settings.ui.showMiniPlayer !== false);
       settingsUI?.refreshCacheStats();
     },
   });
 
-  miniPlayer = new MiniPlayerBar({
-    onTogglePause: () => player.togglePause(),
-    onResumeBlocked: () => player.resumeBlocked(),
+  floatingOrb = new FloatingOrbPlayer({
+    initialPosition: settings.ui.orbPosition,
+    onPrimaryTap: () => {
+      const st = player.state.status;
+      if (st === 'playing' || st === 'paused') {
+        player.togglePause();
+      } else if (st === 'blocked') {
+        player.resumeBlocked();
+      } else if (st === 'error') {
+        player.stop();
+      }
+    },
     onStop: () => player.stop(),
+    onPositionChange: (pos) => {
+      settings.ui.orbPosition = { side: pos.side, topRatio: pos.topRatio };
+      saveSettings();
+    },
   });
 
   /**
@@ -80,7 +93,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
       onSnapshot?.(snapshot);
 
       if (!pipelineResult.speakable || chunks.length === 0) {
-        miniPlayer.render(
+        floatingOrb.render(
           {
             status: 'error',
             speakerName: msg.speakerName || '朗讀中止',
@@ -88,7 +101,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
             currentIndex: 0,
             totalChunks: 0,
             currentText: '',
-            errorMessage: '正則清洗後無可朗讀內容，請在「正則與對比」查看最近一次朗讀快照。',
+            errorMessage: '正則清洗後無可朗讀內容，請在「正則與對比」查看快照。',
           },
           true,
         );
@@ -104,7 +117,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
         forceRegenerate,
       });
     })().catch((err) => {
-      miniPlayer.render(
+      floatingOrb.render(
         {
           status: 'error',
           speakerName: '朗讀錯誤',
@@ -135,9 +148,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
   settingsUI = new SettingsPanelUI({
     settings,
     cache,
-    onSettingsChanged: () => {
-      // Keep audio player and UI synchronized
-    },
+    onSettingsChanged: () => {},
     onTestTts: async () => {
       player.unlockAudioSync();
       const sampleText = '你好，這是 ST Direct TTS 語音連線試聽。';
@@ -184,7 +195,6 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
   gestureHandler.attach();
   settingsUI.mount(settingsHost);
 
-  // Hook into SillyTavern events if available (stop playback on chat switch, rescan iframes on new message)
   const ctx = getSTContext();
   const onChatChanged = () => {
     player.stop();
@@ -209,6 +219,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
     settings,
     cache,
     player,
+    floatingOrb,
     contextMenu,
     gestureHandler,
     settingsUI,
@@ -218,7 +229,7 @@ export function initDirectTts({ settingsHost = null, chatRootSelector = '#chat',
       cache.clearAll();
       contextMenu.close();
       gestureHandler.detach();
-      miniPlayer?.destroy();
+      floatingOrb?.destroy();
       if (ctx?.eventSource && ctx?.event_types) {
         try {
           ctx.eventSource.removeListener?.(ctx.event_types.CHAT_CHANGED, onChatChanged);

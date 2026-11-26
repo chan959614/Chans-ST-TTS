@@ -15,9 +15,17 @@ import {
 } from '../../lib/ttsClient.js';
 import { createDefaultSettings } from '../../lib/constants.js';
 import {
+  addLlmProfile,
+  addTtsProfile,
+  deleteTtsProfile,
   getEffectiveLlmAuth,
+  renameLlmProfile,
   resetAll,
   resetKeepCredentials,
+  selectLlmProfile,
+  selectTtsProfile,
+  syncActiveLlmProfile,
+  syncActiveTtsProfile,
 } from '../../lib/storage.js';
 import {
   extractRulesFromLlmReply,
@@ -109,37 +117,87 @@ test('ttsClient: cache key changes when voice, speed, model, or mode changes', (
   assert.notEqual(k1, k4);
 });
 
-test('storage: resetKeepCredentials preserves URLs & Tokens while resetAll clears them', () => {
+test('storage: independent TTS & LLM multi-profiles and two-mode reset', () => {
   const settings = createDefaultSettings();
+  // Configure default TTS profile
   settings.tts.baseUrl = 'https://my-worker.workers.dev';
   settings.tts.apiKey = 'secret-tts-token';
   settings.tts.speed = 1.75;
   settings.tts.voice = 'alloy';
-  settings.llm.baseUrl = 'https://my-llm.example.com/v1';
-  settings.llm.apiKey = 'secret-llm-token';
-  settings.llm.reuseTtsAuth = true;
-  settings.regexRules = [];
+  syncActiveTtsProfile(settings);
 
-  resetKeepCredentials(settings);
+  // Add a second TTS profile and switch between them
+  const secondTts = addTtsProfile('Fish Audio', {}, settings);
+  settings.tts.baseUrl = 'https://fish-tts.example.com/v1';
+  settings.tts.apiKey = 'fish-token';
+  syncActiveTtsProfile(settings);
+  assert.equal(settings.ttsProfiles.length, 2);
+  assert.equal(settings.activeTtsProfileId, secondTts.id);
+
+  // Switch back to default TTS profile and confirm original values restore
+  selectTtsProfile('tts_default', settings);
   assert.equal(settings.tts.baseUrl, 'https://my-worker.workers.dev');
   assert.equal(settings.tts.apiKey, 'secret-tts-token');
-  assert.equal(settings.llm.baseUrl, 'https://my-llm.example.com/v1');
-  assert.equal(settings.llm.apiKey, 'secret-llm-token');
-  assert.equal(settings.llm.reuseTtsAuth, true);
+
+  // Configure default LLM profile independently of TTS
+  settings.llm.baseUrl = 'https://my-llm.example.com/v1';
+  settings.llm.apiKey = 'secret-llm-token';
+  settings.llm.model = 'gpt-4.1-mini';
+  syncActiveLlmProfile(settings);
+
+  // Add & rename a second LLM profile
+  const secondLlm = addLlmProfile('DeepSeek', {}, settings);
+  renameLlmProfile(secondLlm.id, 'DeepSeek V3', settings);
+  settings.llm.baseUrl = 'https://api.deepseek.com/v1';
+  settings.llm.apiKey = 'ds-key';
+  settings.llm.model = 'deepseek-chat';
+  syncActiveLlmProfile(settings);
+
+  const activeAuth = getEffectiveLlmAuth(settings);
+  assert.equal(activeAuth.baseUrl, 'https://api.deepseek.com/v1');
+  assert.equal(activeAuth.apiKey, 'ds-key');
+  assert.equal(activeAuth.model, 'deepseek-chat');
+
+  // Switch back to default LLM profile
+  selectLlmProfile('llm_default', settings);
+  const firstAuth = getEffectiveLlmAuth(settings);
+  assert.equal(firstAuth.baseUrl, 'https://my-llm.example.com/v1');
+  assert.equal(firstAuth.apiKey, 'secret-llm-token');
+  assert.equal(settings.llmProfiles.find((p) => p.id === secondLlm.id)?.name, 'DeepSeek V3');
+
+  // Cannot delete the last remaining TTS profile, but can delete one when 2 exist
+  assert.equal(deleteTtsProfile(secondTts.id, settings), true);
+  assert.equal(settings.ttsProfiles.length, 1);
+  assert.equal(deleteTtsProfile('tts_default', settings), false);
+
+  // Re-add a second TTS profile before testing resetKeepCredentials
+  const keptTts = addTtsProfile('Backup TTS', {}, settings);
+  settings.tts.baseUrl = 'https://backup-tts.example.com';
+  settings.tts.apiKey = 'backup-key';
+  syncActiveTtsProfile(settings);
+  settings.regexRules = [];
+
+  // resetKeepCredentials preserves ALL saved TTS & LLM profiles (URLs & Tokens) while resetting playback/rules
+  resetKeepCredentials(settings);
+  assert.equal(settings.ttsProfiles.length, 2);
+  assert.equal(settings.llmProfiles.length, 2);
+  assert.equal(settings.tts.baseUrl, 'https://backup-tts.example.com');
+  assert.equal(settings.tts.apiKey, 'backup-key');
   assert.equal(settings.tts.speed, 1.0);
   assert.equal(settings.tts.voice, 'zh-TW-HsiaoChenNeural');
+  assert.equal(settings.ttsProfiles.find((p) => p.id === 'tts_default')?.baseUrl, 'https://my-worker.workers.dev');
+  assert.equal(settings.llmProfiles.find((p) => p.id === secondLlm.id)?.apiKey, 'ds-key');
+  assert.equal(settings.activeTtsProfileId, keptTts.id);
   assert.ok(settings.regexRules.length > 0);
 
-  const sharedAuth = getEffectiveLlmAuth(settings);
-  assert.equal(sharedAuth.baseUrl, 'https://my-worker.workers.dev');
-  assert.equal(sharedAuth.apiKey, 'secret-tts-token');
-
+  // resetAll clears all profiles back to single empty default each
   resetAll(settings);
+  assert.equal(settings.ttsProfiles.length, 1);
+  assert.equal(settings.llmProfiles.length, 1);
   assert.equal(settings.tts.baseUrl, '');
   assert.equal(settings.tts.apiKey, '');
   assert.equal(settings.llm.baseUrl, '');
   assert.equal(settings.llm.apiKey, '');
-  assert.equal(settings.llm.reuseTtsAuth, false);
 });
 
 test('regexAgent: parses fenced JSON rules and detects residual non-body tags in sandbox', () => {

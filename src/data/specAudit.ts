@@ -57,11 +57,11 @@ export const SPEC_AUDIT_ITEMS: AuditItem[] = [
     id: 'audit-5',
     category: '互動與易用性',
     severity: '體驗補強',
-    previousClaim: 'TTS 與 AI 正則助手各自要求填寫 URL / Token，且未規劃不清空連線資訊的局部恢復預設。',
+    previousClaim: 'TTS 與 LLM 僅提供單組網址／Token 欄位，播放控制使用佔位底條，且未規劃保留連線設定的局部重設。',
     realityFinding:
-      '手機端反覆貼上長網址與 Token 成本極高，且使用者微調正則或語速失誤想重設時，最怕把好不容易填好的 API URL 與 Token 一起清掉。',
+      'TTS 與 LLM API 來源互不共用，且使用者常需在多個 TTS 服務或多個 LLM 模型間切換；手機端底部長條也容易遮擋聊天輸入框，而直接依賴 SillyTavern `--active` 變數會呈現刺眼亮綠色。',
     actualFix:
-      'AI 正則助手新增「共用 TTS 網址與 Token」開關免重複填寫；重設功能明確拆成「恢復預設（保留 URL 與 Token）」與「完全重設（清除全部含 URL 與 Token，附行內二次確認）」兩種按鈕，並內建常用正則範本一鍵插入。',
+      'TTS 與 LLM 各自建立獨立多方案管理（下拉秒切 + 行內新增／改名／刪除），播放控制改為可拖曳貼邊懸浮球（輕觸暫停／繼續／解鎖播放，角落 × 或長按停止），移除亮綠主題改採暗色柔靛藍配色，並保留雙模式重設。',
   },
   {
     id: 'audit-6',

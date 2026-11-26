@@ -23,6 +23,10 @@ declare global {
       settings: {
         tts: { baseUrl: string; apiKey: string };
         llm: { baseUrl: string; apiKey: string };
+        activeTtsProfileId?: string;
+        ttsProfiles?: Array<{ id: string; name: string; baseUrl: string; apiKey: string }>;
+        activeLlmProfileId?: string;
+        llmProfiles?: Array<{ id: string; name: string; baseUrl: string; apiKey: string }>;
       };
       settingsUI: { render: () => void };
     };
@@ -129,11 +133,30 @@ export function ExtensionSandbox({ isDark, onToggleTheme }: ExtensionSandboxProp
         });
 
         // Pre-fill sandbox mock URLs ONLY on first load when URLs are empty so users can test immediately
+        let changed = false;
         if (!instance.settings.tts.baseUrl) {
           instance.settings.tts.baseUrl = MOCK_TTS_BASE_URL;
-          instance.settings.llm.baseUrl = MOCK_LLM_BASE_URL;
-          instance.settingsUI.render();
+          const activeTts = instance.settings.ttsProfiles?.find(
+            (p: { id: string }) => p.id === instance.settings.activeTtsProfileId,
+          );
+          if (activeTts) {
+            activeTts.name = 'Edge Worker (沙盒)';
+            activeTts.baseUrl = MOCK_TTS_BASE_URL;
+          }
+          changed = true;
         }
+        if (!instance.settings.llm.baseUrl) {
+          instance.settings.llm.baseUrl = MOCK_LLM_BASE_URL;
+          const activeLlm = instance.settings.llmProfiles?.find(
+            (p: { id: string }) => p.id === instance.settings.activeLlmProfileId,
+          );
+          if (activeLlm) {
+            activeLlm.name = 'OpenAI LLM (沙盒)';
+            activeLlm.baseUrl = MOCK_LLM_BASE_URL;
+          }
+          changed = true;
+        }
+        if (changed) instance.settingsUI.render();
       })
       .catch((err) => {
         if (!cancelled) setBootError(`載入根目錄 /index.js 失敗：${err?.message || String(err)}`);

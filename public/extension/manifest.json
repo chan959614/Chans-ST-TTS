@@ -1,0 +1,12 @@
+{
+  "display_name": "ST Direct TTS (OpenAI / Edge Worker)",
+  "loading_order": 500,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "ST Direct TTS",
+  "version": "1.0.0",
+  "homePage": "https://github.com/sillytavern/SillyTavern",
+  "auto_update": false
+}

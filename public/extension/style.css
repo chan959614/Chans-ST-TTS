@@ -1,0 +1,579 @@
+/* ==========================================================================
+   ST Direct TTS — Native SillyTavern / TauriTavern Theme-Adaptive Stylesheet
+   Uses SillyTavern's native --SmartTheme* CSS variables with dark/light fallbacks.
+   Mobile touch targets >= 44px; clean hairline dividers; zero decorative clutter.
+   ========================================================================== */
+
+:root {
+  --dtts-bg: var(--SmartThemeBlurTintColor, #161b24);
+  --dtts-surface: var(--SmartThemeChatTintColor, #10141c);
+  --dtts-text: var(--SmartThemeBodyColor, #e6eaf2);
+  --dtts-muted: var(--SmartThemeEmColor, #98a3b8);
+  --dtts-border: var(--SmartThemeBorderColor, rgba(255, 255, 255, 0.14));
+  --dtts-accent: var(--active, #3b82f6);
+  --dtts-accent-fg: #ffffff;
+  --dtts-danger: #dc2626;
+  --dtts-warn: #d97706;
+  --dtts-ok: #16a34a;
+  --dtts-shadow: 0 10px 28px var(--SmartThemeShadowColor, rgba(0, 0, 0, 0.35));
+  --dtts-mono: ui-monospace, SFMono-Regular, "IBM Plex Mono", Menlo, Consolas, monospace;
+}
+
+/* ---------- Floating 2-Item Context Menu ---------- */
+.st-dtts-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  background: transparent;
+}
+
+.st-dtts-menu {
+  position: fixed;
+  z-index: 2147483001;
+  min-width: 164px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-bg);
+  color: var(--dtts-text);
+  box-shadow: var(--dtts-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transform-origin: top left;
+  animation: dttsMenuIn 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dttsMenuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.st-dtts-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dtts-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.st-dtts-menu-btn:hover,
+.st-dtts-menu-btn:focus-visible {
+  background: color-mix(in srgb, var(--dtts-accent) 16%, transparent);
+  color: var(--dtts-text);
+  outline: none;
+}
+
+.st-dtts-menu-btn:active {
+  background: color-mix(in srgb, var(--dtts-accent) 26%, transparent);
+}
+
+/* ---------- Compact Floating Mini Player Bar ---------- */
+.st-dtts-player {
+  position: fixed;
+  left: 50%;
+  bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  transform: translateX(-50%);
+  z-index: 2147482900;
+  width: min(520px, calc(100vw - 24px));
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-bg);
+  color: var(--dtts-text);
+  box-shadow: var(--dtts-shadow);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.st-dtts-player[hidden] {
+  display: none !important;
+}
+
+.st-dtts-player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.st-dtts-player-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dtts-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-dtts-player-sub {
+  font-size: 12px;
+  color: var(--dtts-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.st-dtts-player-sub.is-error {
+  color: var(--dtts-danger);
+}
+
+.st-dtts-player-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.st-dtts-player-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dtts-border);
+  background: transparent;
+  color: var(--dtts-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.st-dtts-player-btn:hover {
+  background: color-mix(in srgb, var(--dtts-text) 8%, transparent);
+}
+
+.st-dtts-player-btn.is-primary {
+  background: var(--dtts-accent);
+  border-color: var(--dtts-accent);
+  color: var(--dtts-accent-fg);
+}
+
+/* ---------- Extension Settings Drawer (#extensions_settings2) ---------- */
+.st-dtts-settings {
+  color: var(--dtts-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.st-dtts-settings *,
+.st-dtts-settings *::before,
+.st-dtts-settings *::after {
+  box-sizing: border-box;
+}
+
+.st-dtts-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+}
+
+.st-dtts-tab {
+  flex: 1;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dtts-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.st-dtts-tab.is-active {
+  background: var(--dtts-accent);
+  color: var(--dtts-accent-fg);
+}
+
+.st-dtts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.st-dtts-section[hidden] {
+  display: none !important;
+}
+
+.st-dtts-divider {
+  height: 1px;
+  background: var(--dtts-border);
+  margin: 4px 0;
+}
+
+.st-dtts-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.st-dtts-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dtts-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.st-dtts-input,
+.st-dtts-select,
+.st-dtts-textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  color: var(--dtts-text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.st-dtts-input.is-mono,
+.st-dtts-textarea.is-mono {
+  font-family: var(--dtts-mono);
+  font-size: 12px;
+}
+
+.st-dtts-textarea {
+  min-height: 84px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.st-dtts-input:focus,
+.st-dtts-select:focus,
+.st-dtts-textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--dtts-accent) 45%, transparent);
+  outline-offset: 0;
+  border-color: var(--dtts-accent);
+}
+
+.st-dtts-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.st-dtts-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-dtts-inline > .st-dtts-input,
+.st-dtts-inline > .st-dtts-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.st-dtts-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--dtts-text);
+}
+
+.st-dtts-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--dtts-accent);
+  cursor: pointer;
+}
+
+.st-dtts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 7px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  color: var(--dtts-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.st-dtts-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dtts-text) 8%, var(--dtts-surface));
+}
+
+.st-dtts-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.st-dtts-btn.is-primary {
+  background: var(--dtts-accent);
+  border-color: var(--dtts-accent);
+  color: var(--dtts-accent-fg);
+}
+
+.st-dtts-btn.is-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.st-dtts-btn.is-danger {
+  border-color: color-mix(in srgb, var(--dtts-danger) 55%, var(--dtts-border));
+  color: var(--dtts-danger);
+}
+
+.st-dtts-btn.is-sm {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.st-dtts-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-dtts-hint {
+  font-size: 12px;
+  color: var(--dtts-muted);
+  word-break: break-all;
+}
+
+.st-dtts-hint.is-mono {
+  font-family: var(--dtts-mono);
+}
+
+.st-dtts-notice {
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  font-size: 12px;
+  color: var(--dtts-text);
+}
+
+.st-dtts-notice.is-warn {
+  border-color: color-mix(in srgb, var(--dtts-warn) 50%, var(--dtts-border));
+  color: var(--dtts-warn);
+}
+
+.st-dtts-notice.is-error {
+  border-color: color-mix(in srgb, var(--dtts-danger) 50%, var(--dtts-border));
+  color: var(--dtts-danger);
+}
+
+.st-dtts-notice.is-ok {
+  border-color: color-mix(in srgb, var(--dtts-ok) 50%, var(--dtts-border));
+  color: var(--dtts-ok);
+}
+
+/* ---------- Regex Rules List ---------- */
+.st-dtts-rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.st-dtts-rule-item {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.st-dtts-rule-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.st-dtts-rule-head .st-dtts-input {
+  flex: 1;
+  min-height: 34px;
+}
+
+/* ---------- Before / After Visual Comparison ---------- */
+.st-dtts-compare-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--dtts-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.st-dtts-diff-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.st-dtts-codebox {
+  padding: 10px;
+  border-radius: 7px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  font-family: var(--dtts-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 180px;
+  overflow-y: auto;
+  color: var(--dtts-text);
+}
+
+.st-dtts-removed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.st-dtts-removed-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--dtts-warn) 35%, var(--dtts-border));
+  background: var(--dtts-surface);
+  font-family: var(--dtts-mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.st-dtts-chunk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.st-dtts-chunk-row {
+  display: flex;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  font-family: var(--dtts-mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-dtts-chunk-idx {
+  color: var(--dtts-muted);
+  flex-shrink: 0;
+  min-width: 32px;
+}
+
+/* ---------- AI Regex Agent Cards ---------- */
+.st-dtts-agent-card {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dtts-border);
+  background: var(--dtts-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.st-dtts-confirm-bar {
+  padding: 10px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--dtts-danger) 55%, var(--dtts-border));
+  background: var(--dtts-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---------- Mobile Touch Priority (<= 640px) ---------- */
+@media (max-width: 640px) {
+  .st-dtts-settings {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .st-dtts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .st-dtts-inline {
+    flex-wrap: wrap;
+  }
+
+  .st-dtts-btn,
+  .st-dtts-tab,
+  .st-dtts-input,
+  .st-dtts-select {
+    min-height: 44px;
+    max-width: 100%;
+  }
+
+  .st-dtts-btn {
+    white-space: normal;
+    text-align: center;
+    padding: 8px 12px;
+  }
+
+  .st-dtts-tab {
+    padding: 6px 6px;
+    font-size: 12px;
+  }
+
+  .st-dtts-btn.is-sm {
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .st-dtts-player {
+    width: calc(100vw - 16px);
+    padding: 6px 10px;
+  }
+}

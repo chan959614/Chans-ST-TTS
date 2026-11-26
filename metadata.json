@@ -1,0 +1,6 @@
+{
+  "name": "ST Direct TTS — SillyTavern / TauriTavern 語音朗讀插件",
+  "description": "純前端原生 ES Module 的 SillyTavern / TauriTavern（安卓端）OpenAI 相容 TTS 直讀擴充插件，支援雙擊快顯選單、正則前後對比、AI 正則助手與 Edge TTS Worker 無縫對接。",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

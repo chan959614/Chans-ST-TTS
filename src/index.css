@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-sans: "Plus Jakarta Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* SillyTavern native CSS theme variables mapped for Light Mode sandbox */
+    --SmartThemeBodyColor: #1c2230;
+    --SmartThemeEmColor: #4f5d78;
+    --SmartThemeUnderlineColor: #2563eb;
+    --SmartThemeQuoteColor: #0f766e;
+    --SmartThemeBlurTintColor: #ffffff;
+    --SmartThemeChatTintColor: #f4f6fa;
+    --SmartThemeUserMesBlurTintColor: #eef2f9;
+    --SmartThemeBotMesBlurTintColor: #ffffff;
+    --SmartThemeShadowColor: rgba(15, 23, 42, 0.08);
+    --SmartThemeBorderColor: #d9e0ec;
+    --SmartThemeCheckboxBgColor: #e5eaf3;
+    --active: #2563eb;
+  }
+
+  .dark {
+    /* SillyTavern native CSS theme variables mapped for Dark Mode sandbox */
+    --SmartThemeBodyColor: #e6eaf2;
+    --SmartThemeEmColor: #98a3b8;
+    --SmartThemeUnderlineColor: #60a5fa;
+    --SmartThemeQuoteColor: #5eead4;
+    --SmartThemeBlurTintColor: #161b24;
+    --SmartThemeChatTintColor: #10141c;
+    --SmartThemeUserMesBlurTintColor: #1a2130;
+    --SmartThemeBotMesBlurTintColor: #151a24;
+    --SmartThemeShadowColor: rgba(0, 0, 0, 0.42);
+    --SmartThemeBorderColor: #293244;
+    --SmartThemeCheckboxBgColor: #1f2633;
+    --active: #3b82f6;
+  }
+
+  body {
+    font-family: var(--font-sans);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Simulated SillyTavern inline-drawer classes so the real extension UI renders faithfully */
+.st-sandbox-drawer .inline-drawer {
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 10px;
+  background: var(--SmartThemeBlurTintColor);
+  overflow: hidden;
+}
+
+.st-sandbox-drawer .inline-drawer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: var(--SmartThemeBodyColor);
+  background: transparent;
+}
+
+.st-sandbox-drawer .inline-drawer-content {
+  padding: 0 14px 14px 14px;
+  border-top: 1px solid var(--SmartThemeBorderColor);
+}
+
+.st-sandbox-drawer .inline-drawer-content.is-collapsed {
+  display: none;
+}
